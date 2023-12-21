@@ -1,34 +1,44 @@
-import { Button } from '@/componnts/ui/button'
-import { Input } from '@/componnts/ui/input'
+import { api } from '@/lib/axios'
+import { RegisterUser } from './register-user'
 
-const Page = () => {
+type User = {
+	id: number
+	name: string
+	email: string
+	username: string
+}
+
+const Page = async () => {
+	const fetchUsers = async () => {
+		try {
+			const response = await api.get('/users')
+			const users = await response.data
+			return users
+		} catch (error) {
+			console.log(error)
+		}
+	}
+
+	const users: User[] = await fetchUsers()
+	console.log(users)
+
 	return (
-		<div className='flex flex-col'>
-			<h1 className='text-3xl'>Adição de novo usuário</h1>
+		<div className='flex flex-col gap-4'>
+			<h1 className='text-3xl'>Usuários</h1>
 
 			<div className='mt-10'>
-				<form className='flex flex-col gap-4'>
-					<Input
-						type='email'
-						placeholder='Nome'
-					/>
-					<Input
-						name='email'
-						placeholder='E-mail'
-					/>
-					<Input
-						name='password'
-						placeholder='Senha'
-					/>
+				<RegisterUser />
+			</div>
 
-					<Button
-						type='submit'
-						className='max-w-52'
-						variant={'secondary'}
-					>
-						Cadastrar
-					</Button>
-				</form>
+			<div className='flex flex-col gap-4 mt-10'>
+				<h2 className='text-3xl'>Lista de usuários:</h2>
+				<ul className='list-disc list-inside'>
+					{/* {users.map((user) => (
+						<li key={user.id}>
+							{user.name} - {user.email} - {user.username} - {user.id}
+						</li>
+					))} */}
+				</ul>
 			</div>
 		</div>
 	)
