@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { revalidateTag } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const GET = async () => {
@@ -8,33 +9,31 @@ export const GET = async () => {
 }
 
 export const POST = async (req: NextRequest) => {
-	const res = await req.json()
-	return NextResponse.json({ res })
+	const { email, username, name } = await req.json()
 
-	// como diabos acesso o corpo da requisição?
-	// const { email, username, name } = await req.body
+	if (!email || !username || !name) {
+		return NextResponse.json({ message: 'Missing required fields' })
+	}
 
-	// if (!email || !username || !name) {
-	// 	return NextResponse.json({ message: 'Missing required fields' })
-	// }
+	const userAlreadyExists = await prisma.user.findUnique({
+		where: {
+			username: username,
+		},
+	})
 
-	// const userExists = await prisma.user.findUnique({
-	// 	where: {
-	// 		username,
-	// 	},
-	// })
+	if (userAlreadyExists) {
+		return NextResponse.json({ message: 'Username already exists' })
+	}
 
-	// if (userExists) {
-	// 	return NextResponse.json({ message: 'Username already exists' })
-	// }
+	const user = await prisma.user.create({
+		data: {
+			email,
+			username,
+			name,
+		},
+	})
 
-	// const user = await prisma.user.create({
-	// 	data: {
-	// 		email,
-	// 		username,
-	// 		name,
-	// 	},
-	// })
+	revalidateTag('users')
 
-	// return NextResponse.json(data)
+	return NextResponse.json(user)
 }

@@ -1,4 +1,4 @@
-import { api } from '@/lib/axios'
+import { api } from '@/utils/api'
 import { RegisterUser } from './register-user'
 
 type User = {
@@ -8,40 +8,47 @@ type User = {
 	username: string
 }
 
-const Page = async () => {
-	const fetchUsers = async () => {
-		try {
-			const response = await api.get('/users')
-			const users = await response.data
-			return users
-		} catch (error) {
-			console.log(error)
-		}
-	}
+const fetchUsers = async () => {
+	const response = await api('/users', {
+		cache: 'no-store',
+		next: {
+			tags: ['users'],
+		},
+	})
+	const usersList = await response.json()
 
-	const users: User[] = await fetchUsers()
-	console.log(users)
+	return usersList
+}
+
+const UsersPage = async () => {
+	const usersList: User[] = await fetchUsers()
 
 	return (
 		<div className='flex flex-col gap-4'>
 			<h1 className='text-3xl'>Usuários</h1>
 
-			<div className='mt-10'>
+			<section className='mt-10'>
 				<RegisterUser />
-			</div>
+			</section>
 
-			<div className='flex flex-col gap-4 mt-10'>
+			<main className='flex flex-col gap-4 mt-10'>
 				<h2 className='text-3xl'>Lista de usuários:</h2>
-				<ul className='list-disc list-inside'>
-					{/* {users.map((user) => (
-						<li key={user.id}>
-							{user.name} - {user.email} - {user.username} - {user.id}
-						</li>
-					))} */}
+				<ul className='flex flex-col gap-8'>
+					{usersList.map((user) => (
+						<div key={user.id}>
+							<li className='flex flex-col gap-2'>
+								<strong>Nome: {user.name}</strong>
+								<strong>Email: {user.email}</strong>
+								<strong>Usuário: {user.username}</strong>
+								<strong>ID: {user.id}</strong>
+							</li>
+							<hr />
+						</div>
+					))}
 				</ul>
-			</div>
+			</main>
 		</div>
 	)
 }
 
-export default Page
+export default UsersPage
